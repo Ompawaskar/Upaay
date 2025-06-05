@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title></title>
+  <style>
+    #google_translate_element {
+      position: fixed;
+      top: 60px;
+      right: 10px;
+      z-index: 1000;
+      display: none;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 10px;
+    }
+
+    /* Hide the Google Translate banner/branding when not active */
+    .goog-te-banner-frame {
+      display: none !important;
+    }
+    
+    body {
+      top: 0 !important;
+    }
+    
+    /* Hide the top banner frame */
+    .goog-te-banner-frame.skiptranslate {
+      display: none !important;
+    }
+
+    /* Customize the dropdown button */
+    .goog-te-gadget-simple {
+      background-color: #f8f9fa;
+      border: 1px solid #e1e8ed;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .goog-te-gadget-simple:hover {
+      background-color: #e8f4fd;
+      border-color: #1da1f2;
+    }
+
+    /* Customize the language menu */
+    .goog-te-menu-value {
+      color: #333;
+      font-weight: 500;
+    }
+
+    /* Style for the toggle button */
+    #translateToggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 1001;
+      padding: 2px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #ima {
+      width: 24px;
+      height: 24px;
+      filter: brightness(0) invert(1);
+    }
+
+    #translateToggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #translateToggle:active {
+      transform: translateY(0);
+    }
+
+    /* Hide the Google Translate frame initially */
+    .goog-te-banner-frame {
+      visibility: hidden !important;
+    }
+
+    /* When translate is active, show minimal branding */
+    .translate-active .goog-te-banner-frame {
+      visibility: visible !important;
+    }
+
+    /* Custom close button for translate element */
+    #closeTranslate {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #ff4757;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #closeTranslate:hover {
+      background: #ff3742;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="google_translate_element">
+    <button id="closeTranslate">&times;</button>
+  </div>
+  <button id="translateToggle" title="Translate Page">
+    <!-- <img src="data:image/png;base64,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" alt="Translate" id="ima"> -->
+  </button>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+  <script type="text/javascript">
+    let translateInitialized = false;
+
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        { 
+          pageLanguage: 'en',
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          autoDisplay: false
+        },
+        'google_translate_element'
+      );
+      translateInitialized = true;
+    }
+
+    // Toggle visibility of Google Translate element
+    document.getElementById('translateToggle').addEventListener('click', function () {
+      if (!translateInitialized) {
+        // Load Google Translate script if not already loaded
+        if (!document.querySelector('script[src*="translate.google.com"]')) {
+          const script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+          document.body.appendChild(script);
+        }
+        return;
+      }
+
+      var translateElement = document.getElementById('google_translate_element');
+      if (translateElement.style.display === 'none' || translateElement.style.display === '') {
+        translateElement.style.display = 'block';
+        document.body.classList.add('translate-active');
+      } else {
+        translateElement.style.display = 'none';
+        document.body.classList.remove('translate-active');
+      }
+    });
+
+    // Close translate element
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'closeTranslate') {
+        document.getElementById('google_translate_element').style.display = 'none';
+        document.body.classList.remove('translate-active');
+      }
+    });
+
+    // Hide translate element when clicking outside
+    document.addEventListener('click', function(e) {
+      const translateElement = document.getElementById('google_translate_element');
+      const toggleButton = document.getElementById('translateToggle');
+      
+      if (translateElement.style.display === 'block' && 
+          !translateElement.contains(e.target) && 
+          !toggleButton.contains(e.target)) {
+        translateElement.style.display = 'none';
+        document.body.classList.remove('translate-active');
+      }
+    });
+  </script>
+</body>
+</html>
