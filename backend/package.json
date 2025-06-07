@@ -12,7 +12,7 @@
     "face-api.js": "^0.22.2",
     "mongoose": "^8.15.1",
     "nodemon": "^3.1.10",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
     "glob": "^11.0.2",
     "mongoose": "^8.15.1",
     "multer": "^2.0.1",
