@@ -1,33 +1,6 @@
 import mongoose from 'mongoose';
 
-const questionSchema = new mongoose.Schema({
-  questionText: {
-    type: String,
-    required: false,
-    trim: true
-  },
-  options: [{
-    type: String,
-    trim: true
-  }],
-  correctAnswer: {
-    type: String,
-    required: false,
-    trim: true
-  },
-  marks: {
-    type: Number,
-    default: 1,
-    min: 0
-  }
-});
-
 const testSchema = new mongoose.Schema({
-  testId: {
-    type: String,
-    required: false,
-    trim: true
-  },
   subject: {
     type: String,
     required: false,
@@ -35,7 +8,8 @@ const testSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    required: false
+    required: false,
+    default: Date.now
   },
   centerLocation: {
     type: String,
@@ -45,9 +19,14 @@ const testSchema = new mongoose.Schema({
   maxMarks: {
     type: Number,
     required: false,
-    min: 0
+    min: 0,
+    default: 100
   },
-  questions: [questionSchema]
+  imageLink: {
+    type: String,
+    required: false,
+    trim: true
+  }
 }, {
   timestamps: true
 });

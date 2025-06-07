@@ -85,7 +85,7 @@ const Volunteer = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    socketRef.current = io('http://localhost:5000');
+    socketRef.current = io('http://localhost:3000');
     
     socketRef.current.on('connect', () => {
       console.log('Connected to server');
@@ -213,7 +213,7 @@ const Volunteer = () => {
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 5000
+        maximumAge: 3000
       }
     );
   };
