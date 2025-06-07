@@ -18,7 +18,7 @@ const Navbar = () => {
                     {/* Logo */}
                     <div className="flex-shrink-0 flex items-center">
                         <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            FootPathShala
+                            YourBrand
                         </Link>
                     </div>
 
@@ -59,7 +59,7 @@ const Navbar = () => {
                                 Sessions
                             </NavLink>
                             <NavLink
-                                to="/volunteer-scheduler"
+                                to="/about"
                                 className={({ isActive }) =>
                                     `px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive
                                         ? 'text-blue-600 bg-blue-50'
@@ -67,7 +67,7 @@ const Navbar = () => {
                                     }`
                                 }
                             >
-                                Calendar
+                                About
                             </NavLink>
                             <NavLink
                                 to="/register"
