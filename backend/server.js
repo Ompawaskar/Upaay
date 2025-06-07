@@ -265,7 +265,7 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
   console.error('MongoDB connection error:', err);
 });
 
-server.listen(5000, () => {
-  console.log('Socket.IO server is running on port 5000');
+server.listen(3000, () => {
+  console.log('Socket.IO server is running on port 3000');
 });
 
