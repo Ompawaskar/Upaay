@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import Layout from './Layout.jsx'
-import Dashboard from './components/Dashboard/Dashboard.jsx'
 import { ClerkProvider, SignedIn } from '@clerk/clerk-react'
 import VolunteerGradingComponent from './components/Student/studentTest.jsx';
 import AttendanceTest from './components/attendance/attendencetest.jsx'
@@ -35,7 +34,6 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
       <Route index element={<HeroSection/>} />
-      <Route path="dashboard" element={<SignedIn > <Dashboard /> </SignedIn>} />
       <Route path="*" element={<div>404 Not Found</div>} />
       <Route path="volunteer-sessions" element={<Volunteer />} />
       <Route path="volunteer-scheduler" element={<VolunteerScheduler />} />
