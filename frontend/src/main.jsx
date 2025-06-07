@@ -8,7 +8,7 @@ import { ClerkProvider, SignedIn } from '@clerk/clerk-react'
 
 import VolunteerGradingComponent from './components/Student/studentTest.jsx';
 import AttendanceTest from './components/attendance/attendencetest.jsx'
-
+import CertificateGenerator from './components/certificate/certificate.jsx';
 import Volunteer from './components/VolunteerSessions/Volunteer.jsx'
 import Calendar from './components/ScheduleDisplay/scheduleIcon.jsx/Calendar.jsx'
 
@@ -39,6 +39,7 @@ const router = createBrowserRouter(
       <Route path="volunteer-sessions" element={<Volunteer />} />
       <Route path='/test' element={<VolunteerGradingComponent />} />
       <Route path='/attendance-test' element={<AttendanceTest />} />
+       <Route path="/certificate" element={<CertificateGenerator />} />
       <Route path='/schedule' element={<Calendar/>}/>
     </Route>
   ))
