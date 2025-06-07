@@ -10,7 +10,7 @@ import VolunteerGradingComponent from './components/Student/studentTest.jsx';
 import AttendanceTest from './components/attendance/attendencetest.jsx'
 import CertificateGenerator from './components/certificate/certificate.jsx';
 import Volunteer from './components/VolunteerSessions/Volunteer.jsx'
-
+import Calendar from './components/ScheduleDisplay/scheduleIcon.jsx/Calendar.jsx'
 
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -40,14 +40,14 @@ const router = createBrowserRouter(
       <Route path='/test' element={<VolunteerGradingComponent />} />
       <Route path='/attendance-test' element={<AttendanceTest />} />
        <Route path="/certificate" element={<CertificateGenerator />} />
-        
+      <Route path='/schedule' element={<Calendar/>}/>
     </Route>
   ))
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <RouterProvider router={router} />
+      <RouterProvider router={router} />+
     </ClerkProvider>
   </StrictMode>
 )
