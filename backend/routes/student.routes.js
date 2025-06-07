@@ -1,23 +1,19 @@
+import express from 'express';
+const router = express.Router();
 
-import {Router} from 'express';
-
+// Import your controller functions
 import { handleCreateStudent, handleGetStudentsOfScheduledClass } from '../controllers/student.controller.js';
 
+// Import your models
 import Student from '../models/student.js';
 import Test from '../models/test.js';
 import Volunteer from '../models/volunteer.js';
 
-
-router.get('/get-students-class-schedule/:scheduleId',handleGetStudentsOfScheduledClass)
+// Define your routes
+router.get('/get-students-class-schedule/:scheduleId', handleGetStudentsOfScheduledClass);
 
 // router.post('/mark-attendance/:id', handleMarkAttendance);
-router.post('/create',handleCreateStudent);
-
-
-
-
-
-const router = Router();
+router.post('/create', handleCreateStudent);
 
 // New route to save test results for students
 router.post('/save-test-results', async (req, res) => {
@@ -179,6 +175,5 @@ const handleSave = async () => {
     alert('Failed to save grades. Please try again later.');
   }
 };
-
 
 export default router;
