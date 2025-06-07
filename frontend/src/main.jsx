@@ -6,6 +6,7 @@ import Layout from './Layout.jsx'
 import Dashboard from './components/Dashboard/Dashboard.jsx'
 import { ClerkProvider, SignedIn } from '@clerk/clerk-react'
 import VolunteerGradingComponent from './components/Student/studentTest.jsx';
+import AttendanceTest from './components/attendance/attendencetest.jsx'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -20,6 +21,7 @@ const router = createBrowserRouter(
       <Route path="dashboard" element={<SignedIn > <Dashboard /> </SignedIn>} />
       <Route path="*" element={<div>404 Not Found</div>} />
       <Route path='/test' element={<VolunteerGradingComponent />} />
+      <Route path='/attendance-test' element={<AttendanceTest />} />
     </Route>
   ))
 
