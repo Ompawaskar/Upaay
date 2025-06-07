@@ -19,6 +19,13 @@ const Volunteer = () => {
   const sessionIdRef = useRef(null);
   const startTimeRef = useRef(null);
 
+  // Fixed current location
+  const fixedLocation = {
+    latitude: 19.154113022852865,
+    longitude: 72.8542468706235,
+    accuracy: 10 // Adding accuracy for realism
+  };
+
   // Dummy data for upcoming sessions with target locations
   const upcomingSessions = [
     {
@@ -31,9 +38,9 @@ const Volunteer = () => {
       icon: Calculator,
       color: 'bg-blue-500',
       targetLocation: {
-        latitude: 19.1561728,
-        longitude: 72.8727552,
-        address: 'Mumbai University, Kalina'
+        latitude: 19.15396215363384,
+        longitude: 72.85438169999998,
+        address: 'JPMC'
       }
     },
     {
@@ -46,8 +53,8 @@ const Volunteer = () => {
       icon: BookOpen,
       color: 'bg-green-500',
       targetLocation: {
-        latitude: 19.153916270650555,
-        longitude: 72.85501127896872,
+        latitude: 19.154148417123725,
+        longitude: 72.85507612775481,
         address: 'Sanu Mobile, Mumbai'
       }
     },
@@ -117,7 +124,7 @@ const Volunteer = () => {
       setStatus(`Session completed. Time spent: ${formatTime(data.totalTime)}`);
       
       if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        clearInterval(watchIdRef.current);
         watchIdRef.current = null;
       }
       
@@ -132,7 +139,7 @@ const Volunteer = () => {
       setCurrentSession(null);
       
       if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        clearInterval(watchIdRef.current);
         watchIdRef.current = null;
       }
       
@@ -145,7 +152,7 @@ const Volunteer = () => {
         socketRef.current.disconnect();
       }
       if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        clearInterval(watchIdRef.current);
       }
     };
   }, [currentSession]);
@@ -185,89 +192,51 @@ const Volunteer = () => {
 
   const startLocationTracking = (sessionData) => {
     // Function to handle location updates
-    const handleLocationUpdate = (position) => {
+    const sendLocationUpdate = () => {
       if (sessionIdRef.current) {
-        const currentLocation = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy
-        };
-        
-        console.log('Sending location update with sessionId:', sessionIdRef.current);
+        console.log('Sending fixed location update with sessionId:', sessionIdRef.current);
         socketRef.current.emit('locationUpdate', { 
           sessionId: sessionIdRef.current,
-          location: currentLocation 
+          location: fixedLocation 
         });
       } else {
         console.warn('SessionId is null, cannot send location update');
       }
     };
 
-    // Start watching position
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      handleLocationUpdate,
-      (error) => {
-        console.error('Location error:', error);
-        setStatus(`Location error: ${error.message}`);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 5000
-      }
-    );
+    // Send initial location
+    sendLocationUpdate();
+    
+    // Set up interval to send location updates every 5 seconds
+    watchIdRef.current = setInterval(sendLocationUpdate, 5000);
   };
 
   const startSession = (sessionData) => {
-    if (!navigator.geolocation) {
-      setStatus('Geolocation is not supported by this browser');
-      return;
-    }
-
     setCurrentSession(sessionData);
-    setStatus('Getting your location...');
+    setStatus('Inside current location...');
     
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy
-        };
-
-        console.log("Location acquired:", location);
-        
-        // Start session with target location
-        socketRef.current.emit('startSession', { 
-          location,
-          targetLocation: sessionData.targetLocation 
-        });
-        
-        setIsSessionActive(true);
-        startTimeRef.current = Date.now();
-        setSessionTime('00:00:00');
-        
-        // Wait for sessionStarted event before starting location tracking
-        const handleSessionStarted = (data) => {
-          console.log('Session started, now starting location tracking');
-          startLocationTracking(sessionData);
-          // Remove the listener to avoid duplicate calls
-          socketRef.current.off('sessionStarted', handleSessionStarted);
-        };
-        
-        // Add temporary listener for this session start
-        socketRef.current.on('sessionStarted', handleSessionStarted);
-      },
-      (error) => {
-        setError(`Error getting location: ${error.message}`);
-        setStatus('Location access denied');
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    );
+    console.log("Using fixed location:", fixedLocation);
+    
+    // Start session with target location
+    socketRef.current.emit('startSession', { 
+      location: fixedLocation,
+      targetLocation: sessionData.targetLocation 
+    });
+    
+    setIsSessionActive(true);
+    startTimeRef.current = Date.now();
+    setSessionTime('00:00:00');
+    
+    // Wait for sessionStarted event before starting location tracking
+    const handleSessionStarted = (data) => {
+      console.log('Session started, now starting location tracking');
+      startLocationTracking(sessionData);
+      // Remove the listener to avoid duplicate calls
+      socketRef.current.off('sessionStarted', handleSessionStarted);
+    };
+    
+    // Add temporary listener for this session start
+    socketRef.current.on('sessionStarted', handleSessionStarted);
   };
 
   const stopSession = () => {
@@ -275,7 +244,7 @@ const Volunteer = () => {
       socketRef.current.emit('stopSession', { sessionId: sessionIdRef.current });
       
       if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        clearInterval(watchIdRef.current);
         watchIdRef.current = null;
       }
     }
