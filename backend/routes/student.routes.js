@@ -1,7 +1,21 @@
-import { Router } from 'express';
+
+import {Router} from 'express';
+
+import { handleCreateStudent, handleGetStudentsOfScheduledClass } from '../controllers/student.controller.js';
+
 import Student from '../models/student.js';
 import Test from '../models/test.js';
 import Volunteer from '../models/volunteer.js';
+
+
+router.get('/get-students-class-schedule/:scheduleId',handleGetStudentsOfScheduledClass)
+
+// router.post('/mark-attendance/:id', handleMarkAttendance);
+router.post('/create',handleCreateStudent);
+
+
+
+
 
 const router = Router();
 
@@ -165,5 +179,6 @@ const handleSave = async () => {
     alert('Failed to save grades. Please try again later.');
   }
 };
+
 
 export default router;

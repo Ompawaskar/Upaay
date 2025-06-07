@@ -8,9 +8,13 @@ import dotenv from 'dotenv';
 import volunteerRoutes from './routes/volunteer.routes.js';
 import testRoutes from './routes/test.routes.js';
 import studentRoutes from './routes/student.routes.js';
+
+import classScheduleRoutes from './routes/classSchedule.routes.js';
+
 import ocrRoutes from './routes/ocr.routes.js';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+
 
 dotenv.config();
 
@@ -35,9 +39,16 @@ const io = new Server(server, {
 
 
 const PORT = 3000;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use('/api/volunteers', volunteerRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/students', studentRoutes);
+
+app.use('/api/class-schedule', classScheduleRoutes);
+
 app.use('/api/ocr', ocrRoutes);
 
 const sessionSchema = new mongoose.Schema({
@@ -252,6 +263,7 @@ io.on('connection', (socket) => {
     }
   });
 });
+
 
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {

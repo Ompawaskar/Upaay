@@ -40,12 +40,15 @@ const studentSchema = new mongoose.Schema({
     type: String, // URL to the image
     default: ''
   },
+
+
   rollNo: {
     type: String,
     required: true,
     trim: true,
     unique: true
   },
+
   feedback: [{
     comment: {
       type: String,
@@ -61,6 +64,7 @@ const studentSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+
   location:{
     type: String,
     required: true,
@@ -72,6 +76,7 @@ const studentSchema = new mongoose.Schema({
   }],
   level: Number,
   testResults: [testResultSchema]
+
 }, {
   timestamps: true
 });
