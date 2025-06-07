@@ -92,7 +92,7 @@ const Volunteer = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    socketRef.current = io('http://localhost:5000');
+    socketRef.current = io('http://localhost:3000');
     
     socketRef.current.on('connect', () => {
       console.log('Connected to server');
@@ -204,11 +204,20 @@ const Volunteer = () => {
       }
     };
 
-    // Send initial location
-    sendLocationUpdate();
-    
-    // Set up interval to send location updates every 5 seconds
-    watchIdRef.current = setInterval(sendLocationUpdate, 5000);
+    // Start watching position
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      handleLocationUpdate,
+      (error) => {
+        console.error('Location error:', error);
+        setStatus(`Location error: ${error.message}`);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 3000
+      }
+    );
+
   };
 
   const startSession = (sessionData) => {

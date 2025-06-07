@@ -5,12 +5,29 @@ import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
+import volunteerRoutes from './routes/volunteer.routes.js';
+import testRoutes from './routes/test.routes.js';
+import studentRoutes from './routes/student.routes.js';
+
+import classScheduleRoutes from './routes/classSchedule.routes.js';
+
+import ocrRoutes from './routes/ocr.routes.js';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const server = createServer(app);
 const io = new Server(server, {
@@ -20,7 +37,19 @@ const io = new Server(server, {
   }
 });
 
+
 const PORT = 3000;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/volunteers', volunteerRoutes);
+app.use('/api/tests', testRoutes);
+app.use('/api/students', studentRoutes);
+
+app.use('/api/class-schedule', classScheduleRoutes);
+
+app.use('/api/ocr', ocrRoutes);
 
 const sessionSchema = new mongoose.Schema({
   sessionId: { type: String, required: true, unique: true },
@@ -389,6 +418,7 @@ io.on('connection', (socket) => {
 });
 
 
+
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   console.log('MongoDB connected successfully');
 
@@ -398,9 +428,9 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
 }
 ).catch(err => {
   console.error('MongoDB connection error:', err);
-}); 
+});
 
-server.listen(5000, () => {
-  console.log('Socket.IO server is running on port 5000');
+server.listen(3000, () => {
+  console.log('Socket.IO server is running on port 3000');
 });
 
