@@ -70,6 +70,157 @@ const sessionSchema = new mongoose.Schema({
 
 const Session = mongoose.model('Session', sessionSchema);
 
+const availabilitySchema = new mongoose.Schema({
+  volunteerId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  date: {
+    type: Date,
+    required: true
+  },
+  timeSlot: {
+    type: String,
+    required: true,
+    enum: [
+      '9:00 AM - 11:00 AM',
+      '11:00 AM - 1:00 PM',
+      '2:00 PM - 4:00 PM',
+      '4:00 PM - 6:00 PM',
+      '6:00 PM - 8:00 PM'
+    ]
+  },
+  isAvailable: {
+    type: Boolean,
+    required: true,
+    default: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+availabilitySchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+const Availability = mongoose.model('Availability', availabilitySchema);
+app.post('/api/availability', async (req, res) => {
+  try {
+    const { volunteerId, date, timeSlot, isAvailable } = req.body;
+
+    // Validate required fields
+    if (!volunteerId || !date || !timeSlot || typeof isAvailable !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: volunteerId, date, timeSlot, isAvailable'
+      });
+    }
+
+    // Validate date format
+    const availabilityDate = new Date(date);
+    if (isNaN(availabilityDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date format'
+      });
+    }
+
+    // Check if date is in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (availabilityDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot set availability for past dates'
+      });
+    }
+
+    // Use upsert to create or update availability
+    const result = await Availability.findOneAndUpdate(
+      { volunteerId, date: availabilityDate, timeSlot },
+      { 
+        volunteerId, 
+        date: availabilityDate, 
+        timeSlot, 
+        isAvailable,
+        updatedAt: new Date()
+      },
+      { 
+        upsert: true, 
+        new: true,
+        runValidators: true
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Availability ${isAvailable ? 'marked' : 'removed'} successfully`,
+      data: result
+    });
+
+  } catch (error) {
+    console.error('Error updating availability:', error);
+    
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'Availability already exists for this slot'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/availability', async (req, res) => {
+  try {
+    const { volunteerId, startDate, endDate } = req.query;
+    console.log('Query params:', req.query);
+
+    if (!volunteerId) {
+      return res.status(400).json({
+        success: false,
+        message: 'volunteerId is required'
+      });
+    }
+
+    const query = { volunteerId };
+    
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+
+    const availabilities = await Availability.find(query).sort({ date: 1, timeSlot: 1 });
+
+    res.status(200).json({
+      success: true,
+      availabilities
+    });
+
+  } catch (error) {
+    console.error('Error fetching availability:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371e3; // Earth's radius in meters
   const φ1 = lat1 * Math.PI / 180;
@@ -101,10 +252,12 @@ io.on('connection', (socket) => {
       const diff = calculateDistance(
         location.latitude, location.longitude,
         targetLocation.latitude, targetLocation.longitude);
+
+        console.log('Target location:', targetLocation);
+        console.log('Current location:', location);
       
         console.log(diff);
-        
-
+      
       if(diff > 100)
         return socket.emit('error', { message: 'You are too far from the target location to start a session.' }); 
 
