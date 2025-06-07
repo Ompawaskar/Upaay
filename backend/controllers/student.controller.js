@@ -29,29 +29,29 @@ const handleGetStudentsOfScheduledClass = async(req,res)=>{
     }
 }
 
-const handleMarkAttendance = async (req, res) => {
-    const studentId = req.params.id;
-    const {slotId} = req.body;
-    console.log(studentId, slotId);
+// const handleMarkAttendance = async (req, res) => {
+//     const studentId = req.params.id;
+//     const {slotId} = req.body;
+//     console.log(studentId, slotId);
 
-    try {
-        const updatedStudent = await Student.findById(studentId);
-        if (!updatedStudent) {
-            return res.status(404).json({message: "Student not found"});
-        }
-        if (updatedStudent.attendance.includes(slotId)) {
-            return res.status(400).json({message: "Attendance already marked for this slot"});
-        }
-        updatedStudent.attendance.push(slotId);
-        await updatedStudent.save();
-        return res.status(200).json({message: "Attendance marked successfully", student: updatedStudent});
-    } catch (error) {
-        console.error("Error marking attendance:", error);
-        return res.status(500).json({message: "Error marking attendance"});
-    }
+//     try {
+//         const updatedStudent = await Student.findById(studentId);
+//         if (!updatedStudent) {
+//             return res.status(404).json({message: "Student not found"});
+//         }
+//         if (updatedStudent.attendance.includes(slotId)) {
+//             return res.status(400).json({message: "Attendance already marked for this slot"});
+//         }
+//         updatedStudent.attendance.push(slotId);
+//         await updatedStudent.save();
+//         return res.status(200).json({message: "Attendance marked successfully", student: updatedStudent});
+//     } catch (error) {
+//         console.error("Error marking attendance:", error);
+//         return res.status(500).json({message: "Error marking attendance"});
+//     }
 
 
-}
+// }
 
 const handleCreateStudent = async (req, res) => {
     const {name, age, location, level} = req.body;
@@ -67,4 +67,4 @@ const handleCreateStudent = async (req, res) => {
     }
 }
 
-export {handleGetStudentsOfScheduledClass, handleMarkAttendance, handleCreateStudent};
+export {handleGetStudentsOfScheduledClass, handleCreateStudent};

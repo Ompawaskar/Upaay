@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import volunteerRoutes from './routes/volunteer.routes.js';
 import testRoutes from './routes/test.routes.js';
 import studentRoutes from './routes/student.routes.js';
+import classScheduleRoutes from './routes/classSchedule.routes.js';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/volunteers', volunteerRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/class-schedule', classScheduleRoutes);
 
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {

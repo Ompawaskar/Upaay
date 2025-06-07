@@ -1,62 +1,97 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Upload, Camera, Clock } from 'lucide-react';
+import axios from 'axios'
+
+const BASE_URL = 'http://localhost:3000'
 
 const AttendanceTest = () => {
   // Sample student data - you can replace this with actual data from your backend
   const [students, setStudents] = useState([
     {
-      id: 1,
-      enrollmentId: 'ENR001',
+      _id: 'ENR001',
       name: 'Tharunika L',
-      photo: null,
+      image: null,
       attendance: false
     },
     {
-      id: 2,
-      enrollmentId: 'ENR002',
+      _id: 'ENR002',
       name: 'Gouri Varma',
-      photo: null,
+      image: null,
       attendance: false
     },
     {
-      id: 3,
-      enrollmentId: 'ENR003',
+      _id: 'ENR003',
       name: 'Vinisha kalola',
-      photo: null,
+      image: null,
       attendance: false
     },
     {
-      id: 4,
-      enrollmentId: 'ENR004',
+      _id: 'ENR004',
       name: 'Om Pawaskar',
-      photo: null,
+      image: null,
       attendance: false
     },
     {
-      id: 5,
-      enrollmentId: 'ENR005',
+      _id: 'ENR005',
       name: 'Arpan Saha',
-      photo: null,
+      image: null,
       attendance: false
     }
   ]);
 
+  const [slotId, setSlotId] = useState('684487a829952bf5a3681af0');
+  const [studentsPresent, setStudentsPresent] = useState([]);
+
+
+  useEffect(()=>{
+    //api calls
+    const fetchStudentsOfSlot=async()=>{
+      try {
+        const res=await axios.get(`${BASE_URL}/api/students/get-students-class-schedule/${slotId}`);
+        console.log(res);
+        setStudents(res.data);
+      } catch (error) {
+        console.log(error);
+      } 
+    }
+    fetchStudentsOfSlot();
+
+    
+  },[])
+
+
+  //Api call
   const handleAttendanceChange = (studentId) => {
-    setStudents(students.map(student =>
-      student.id === studentId
-        ? { ...student, attendance: !student.attendance }
-        : student
-    ));
+    if (studentsPresent.includes(studentId)) {
+      setStudentsPresent(studentsPresent.filter(id => id !== studentId));
+      // Mark attendance as false
+    }
+    else{
+      setStudentsPresent([...studentsPresent, studentId]);
+    }  
   };
 
-  const handlePhotoUpload = (studentId, event) => {
+  const handleSaveAttendance = async () => {
+    try {
+      const response = await axios.post(`${BASE_URL}/api/class-schedule/mark-attendance/${slotId}`, {
+        studentsID: studentsPresent
+      });
+      console.log(response.data);
+      // alert('Attendance saved successfully!');
+    } catch (error) {
+      console.error('Error saving attendance:', error);
+      // alert('Failed to save attendance. Please try again.');
+    }
+  }
+
+  const handleimageUpload = (studentId, event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setStudents(students.map(student =>
           student.id === studentId
-            ? { ...student, photo: e.target.result }
+            ? { ...student, image: e.target.result }
             : student
         ));
       };
@@ -75,7 +110,7 @@ const AttendanceTest = () => {
             </div>
             <div>
               <h1 className="text-4xl font-bold mb-2" style={{ color: '#003c64' }}>Student Attendance Dashboard</h1>
-              <p className="text-lg" style={{ color: '#6b7280' }}>Track and manage student attendance with photo verification</p>
+              <p className="text-lg" style={{ color: '#6b7280' }}>Track and manage student attendance with image verification</p>
             </div>
           </div>
           {/* Info Row */}
@@ -130,12 +165,12 @@ const AttendanceTest = () => {
             <table className="w-full">
               <thead style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, rgba(247, 172, 45, 0.05) 100%)' }}>
                 <tr style={{ borderBottom: '2px solid rgba(247, 172, 45, 0.2)' }}>
-                  <th className="px-8 py-5 text-left text-sm font-bold uppercase tracking-wide" style={{ color: '#003c64' }}>
+                  {/* <th className="px-8 py-5 text-left text-sm font-bold uppercase tracking-wide" style={{ color: '#003c64' }}>
                     <div className="flex items-center">
                       <span className="w-4 h-4 mr-2 flex items-center justify-center" style={{ color: '#f7ac2d' }}>#</span>
                       Enrollment ID
                     </div>
-                  </th>
+                  </th> */}
                   <th className="px-8 py-5 text-left text-sm font-bold uppercase tracking-wide" style={{ color: '#003c64' }}>
                     <div className="flex items-center">
                       <span className="w-4 h-4 mr-2 flex items-center justify-center" style={{ color: '#f7ac2d' }}>👤</span>
@@ -145,7 +180,7 @@ const AttendanceTest = () => {
                   <th className="px-8 py-5 text-center text-sm font-bold uppercase tracking-wide" style={{ color: '#003c64' }}>
                     <div className="flex items-center justify-center">
                       <Camera className="h-4 w-4 mr-2" style={{ color: '#f7ac2d' }} />
-                      Photo
+                      image
                     </div>
                   </th>
                   <th className="px-8 py-5 text-center text-sm font-bold uppercase tracking-wide" style={{ color: '#003c64' }}>
@@ -157,7 +192,7 @@ const AttendanceTest = () => {
                   <th className="px-8 py-5 text-center text-sm font-bold uppercase tracking-wide" style={{ color: '#003c64' }}>
                     <div className="flex items-center justify-center">
                       <Upload className="h-4 w-4 mr-2" style={{ color: '#f7ac2d' }} />
-                      Upload Photo
+                      Upload image
                     </div>
                   </th>
                 </tr>
@@ -165,7 +200,7 @@ const AttendanceTest = () => {
               <tbody>
                 {students.map((student, index) => (
                   <tr
-                    key={student.id}
+                    key={student._id}
                     className="transition-all duration-200 hover:shadow-md"
                     style={{
                       backgroundColor: index % 2 === 0 ? 'white' : '#fafbfc',
@@ -180,21 +215,21 @@ const AttendanceTest = () => {
                       e.currentTarget.style.transform = 'translateX(0)';
                     }}
                   >
-                    <td className="px-8 py-6">
+                    {/* <td className="px-8 py-6">
                       <div className="flex items-center">
                         <div className="w-2 h-2 rounded-full mr-3" style={{ backgroundColor: student.attendance ? '#10b981' : '#e5e7eb' }}></div>
                         <span className="font-bold text-lg" style={{ color: '#003c64' }}>{student.enrollmentId}</span>
                       </div>
-                    </td>
+                    </td> */}
                     <td className="px-8 py-6">
                       <span className="text-lg font-medium" style={{ color: '#374151' }}>{student.name}</span>
                     </td>
                     <td className="px-8 py-6 text-center">
                       <div className="flex justify-center">
-                        {student.photo ? (
+                        {student.image ? (
                           <img
-                            src={student.photo}
-                            alt={student.name}
+                            src={student?.image}
+                            alt={student?.name}
                             className="h-12 w-12 rounded-full object-cover border-2 shadow-sm"
                             style={{ borderColor: '#e5e7eb' }}
                           />
@@ -210,8 +245,8 @@ const AttendanceTest = () => {
                         <label className="inline-flex items-center">
                           <input
                             type="checkbox"
-                            checked={student.attendance}
-                            onChange={() => handleAttendanceChange(student.id)}
+                            checked={studentsPresent.includes(student._id)}
+                            onChange={() => handleAttendanceChange(student._id)}
                             className="w-5 h-5 text-blue-600 bg-white border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200"
                           />
                         </label>
@@ -221,25 +256,25 @@ const AttendanceTest = () => {
                       <div className="flex justify-center">
                         <label className="cursor-pointer px-6 py-3 rounded-xl transition-all duration-200 flex items-center font-medium shadow-sm hover:shadow-md"
                           style={{
-                            backgroundColor: student.photo ? 'rgba(16, 185, 129, 0.1)' : 'rgba(247, 172, 45, 0.1)',
-                            color: student.photo ? '#10b981' : '#f7ac2d',
-                            border: `2px solid ${student.photo ? 'rgba(16, 185, 129, 0.2)' : 'rgba(247, 172, 45, 0.2)'}`
+                            backgroundColor: student.image ? 'rgba(16, 185, 129, 0.1)' : 'rgba(247, 172, 45, 0.1)',
+                            color: student.image ? '#10b981' : '#f7ac2d',
+                            border: `2px solid ${student.image ? 'rgba(16, 185, 129, 0.2)' : 'rgba(247, 172, 45, 0.2)'}`
                           }}
                           onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = student.photo ? 'rgba(16, 185, 129, 0.15)' : 'rgba(247, 172, 45, 0.15)';
+                            e.target.style.backgroundColor = student.image ? 'rgba(16, 185, 129, 0.15)' : 'rgba(247, 172, 45, 0.15)';
                             e.target.style.transform = 'translateY(-1px)';
                           }}
                           onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = student.photo ? 'rgba(16, 185, 129, 0.1)' : 'rgba(247, 172, 45, 0.1)';
+                            e.target.style.backgroundColor = student.image ? 'rgba(16, 185, 129, 0.1)' : 'rgba(247, 172, 45, 0.1)';
                             e.target.style.transform = 'translateY(0)';
                           }}
                         >
                           <Upload className="h-4 w-4 mr-2" />
-                          {student.photo ? 'Change Image' : 'Upload Image'}
+                          {student.image ? 'Change Image' : 'Upload Image'}
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => handlePhotoUpload(student.id, e)}
+                            onChange={(e) => handleimageUpload(student.id, e)}
                             className="hidden"
                           />
                         </label>
@@ -261,7 +296,7 @@ const AttendanceTest = () => {
               </div>
               <div className="ml-4">
                 <div className="text-2xl font-bold text-green-600">
-                  {students.filter(s => s.attendance).length}
+                  {studentsPresent.length}
                 </div>
                 <div className="text-sm text-gray-600 font-medium">
                   Present
@@ -277,7 +312,7 @@ const AttendanceTest = () => {
               </div>
               <div className="ml-4">
                 <div className="text-2xl font-bold text-red-600">
-                  {students.filter(s => !s.attendance).length}
+                  {students.length - studentsPresent.length}
                 </div>
                 <div className="text-sm text-gray-600 font-medium">
                   Absent
@@ -308,7 +343,7 @@ const AttendanceTest = () => {
           <button className="px-6 py-3 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-all duration-200 shadow-sm">
             Export Data
           </button>
-          <button className="px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-sm">
+          <button onClick={handleSaveAttendance} className="px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-sm">
             Save Attendance
           </button>
         </div>
