@@ -5,6 +5,9 @@ import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
+import volunteerRoutes from './routes/volunteer.routes.js';
+import testRoutes from './routes/test.routes.js';
+
 dotenv.config();
 
 const app = express();
@@ -21,6 +24,8 @@ const io = new Server(server, {
 });
 
 const PORT = 3000;
+app.use('/api/volunteers', volunteerRoutes);
+app.use('/api/tests', testRoutes);
 
 const sessionSchema = new mongoose.Schema({
   sessionId: { type: String, required: true, unique: true },
