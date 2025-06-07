@@ -7,7 +7,7 @@ dotenv.config();
 const app = express();
 app.use(cors());
 
-const PORT = 5000;
+const PORT = 3000;
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   console.log('MongoDB connected successfully');
