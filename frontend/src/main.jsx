@@ -33,8 +33,7 @@ const fetchStudents = async () => {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
-      <Route index element={<div>Home Page</div>} />
-      {/* <Route path="dashboard" element={<SignedIn > <Dashboard /> </SignedIn>} /> */}
+      <Route index element={<HeroSection/>} />
       <Route path="*" element={<div>404 Not Found</div>} />
       <Route path="volunteer-sessions" element={<Volunteer />} />
       <Route path="volunteer-scheduler" element={<VolunteerScheduler />} />
