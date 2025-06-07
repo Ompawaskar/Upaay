@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   GraduationCap, 
   Calendar, 
@@ -10,7 +10,8 @@ import {
   Users, 
   FileText,
   Award,
-  User
+  User,
+  Eye
 } from 'lucide-react';
 
 const VolunteerGradingComponent = () => {
@@ -30,6 +31,40 @@ const VolunteerGradingComponent = () => {
   const [subject, setSubject] = useState('Mathematics');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [maxMarks, setMaxMarks] = useState(20);
+  const [ocrStatus, setOcrStatus] = useState({});
+  const [centerLocation, setCenterLocation] = useState('Main Center');
+  const [ocrProcessingMessage, setOcrProcessingMessage] = useState('');
+
+  useEffect(() => {
+    // Fetch real students from the backend
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/students');
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Map the student data to match your component's state structure
+          const mappedStudents = data.map((student, index) => ({
+            id: index + 1,
+            name: student.name,
+            rollNo: student.rollNo,
+            marks: '',
+            file: null,
+            dbId: student._id // Store the MongoDB _id for reference
+          }));
+          
+          setStudents(mappedStudents);
+        } else {
+          console.error('Failed to fetch students');
+        }
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      }
+    };
+    
+    fetchStudents();
+  }, []);
 
   const handleMarksChange = (id, marks) => {
     const numericMarks = marks === '' ? '' : Math.min(Math.max(0, parseInt(marks) || 0), maxMarks);
@@ -38,18 +73,173 @@ const VolunteerGradingComponent = () => {
     ));
   };
 
-  const handleFileUpload = (id, file) => {
+  const handleFileUpload = async (id, file) => {
+    if (!file) return;
+    
+    // Update student file immediately for UI feedback
     setStudents(prev => prev.map(student =>
-      student.id === id ? { ...student, file } : student
+      student.id === id ? { ...student, file, ocrProcessing: true } : student
     ));
+    
+    // Set OCR processing status
+    setOcrStatus(prev => ({ ...prev, [id]: 'processing' }));
+    setOcrProcessingMessage('Analyzing image with OCR...');
+    
+    try {
+      // Create form data for the file upload
+      const formData = new FormData();
+      formData.append('testImage', file);
+      formData.append('studentId', students.find(s => s.id === id).rollNo);
+      
+      // Call the backend OCR endpoint
+      const response = await fetch('http://localhost:3000/api/ocr/process-test', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error('OCR processing failed');
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Auto-fill form fields with detected data
+        if (data.subjectName) setSubject(data.subjectName);
+        if (data.testDate) setDate(data.testDate);
+        if (data.maxMarks) setMaxMarks(data.maxMarks);
+        
+        // Auto-fill marks if detected
+        if (data.marksReceived) {
+          const marksToSet = Math.min(data.marksReceived, maxMarks);
+          setStudents(prev => prev.map(student =>
+            student.id === id ? { 
+              ...student, 
+              ocrProcessing: false,
+              marks: marksToSet,
+              ocrData: data
+            } : student
+          ));
+          
+          setOcrProcessingMessage(`Successfully detected marks: ${marksToSet}`);
+        } else {
+          setStudents(prev => prev.map(student =>
+            student.id === id ? { 
+              ...student, 
+              ocrProcessing: false,
+              ocrData: data
+            } : student
+          ));
+          
+          setOcrProcessingMessage('OCR completed, but no marks detected. Please enter manually.');
+        }
+        setOcrStatus(prev => ({ ...prev, [id]: 'success' }));
+        
+        // Auto-clear message after 5 seconds
+        setTimeout(() => {
+          setOcrProcessingMessage('');
+        }, 5000);
+      } else {
+        setOcrStatus(prev => ({ ...prev, [id]: 'error' }));
+        setOcrProcessingMessage('Error processing image. Please try again or enter marks manually.');
+        setStudents(prev => prev.map(student =>
+          student.id === id ? { ...student, ocrProcessing: false } : student
+        ));
+      }
+    } catch (error) {
+      console.error("Error processing file with OCR:", error);
+      setOcrStatus(prev => ({ ...prev, [id]: 'error' }));
+      setOcrProcessingMessage('Error processing image. Please try again.');
+      setStudents(prev => prev.map(student =>
+        student.id === id ? { ...student, ocrProcessing: false } : student
+      ));
+    }
   };
-
-  const handleSave = () => {
+  
+  const handleSave = async () => {
     const gradedStudents = students.filter(s => s.marks !== '');
-    console.log('Saving data:', { subject, date, maxMarks, students: gradedStudents });
-    alert(`Successfully saved grades for ${gradedStudents.length} students!`);
-  };
+    
+    if (gradedStudents.length === 0) {
+      alert('Please grade at least one student before saving.');
+      return;
+    }
+    
+    try {
+      // In a real app, you'd get this from authentication
+      const volunteerId = "650a7d5f12e3456789abcdef"; // Example MongoDB ObjectId format
+      
+      // First, upload all the image files to get permanent URLs
+      const studentResultsWithImages = await Promise.all(
+        gradedStudents.map(async (student) => {
+          let submissionImageUrl = '';
+          
+          if (student.file) {
+            // Create a FormData object to upload the file
+            const formData = new FormData();
+            formData.append('testImage', student.file);
+            formData.append('studentId', student.rollNo);
+            formData.append('testSubject', subject);
+            
+            // Upload the file and get a permanent URL
+            const uploadResponse = await fetch('http://localhost:3000/api/tests/upload-image', {
+              method: 'POST',
+              body: formData,
+            });
+            
+            if (uploadResponse.ok) {
+              const uploadData = await uploadResponse.json();
+              submissionImageUrl = uploadData.imageUrl;
+            }
+          }
+          
+          return {
+            rollNo: student.rollNo,
+            name: student.name,
+            marks: parseInt(student.marks),
+            imageUrl: submissionImageUrl,
+            ocrData: student.ocrData || null
+          };
+        })
+      );
 
+      // Now save the test and student records
+      const testData = {
+        subject,
+        date: new Date(date),
+        centerLocation,
+        maxMarks: parseInt(maxMarks),
+        imageLink: "" // Optional
+      };
+      
+      const response = await fetch('http://localhost:3000/api/students/save-test-results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          testData,
+          studentResults: studentResultsWithImages,
+          volunteerId
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setOcrProcessingMessage(`✓ Successfully saved grades for ${gradedStudents.length} students!`);
+        setTimeout(() => setOcrProcessingMessage(''), 3000);
+        
+        // Reset the form for the next batch or keep it for reference
+        // Uncomment to reset: setStudents(students.map(s => ({...s, marks: '', file: null})));
+      } else {
+        setOcrProcessingMessage(`Error saving grades: ${data.message}`);
+        setTimeout(() => setOcrProcessingMessage(''), 5000);
+      }
+    } catch (error) {
+      console.error('Error saving grades:', error);
+      setOcrProcessingMessage('Failed to save grades. Please try again later.');
+      setTimeout(() => setOcrProcessingMessage(''), 5000);
+    }
+  };
+  
   const gradedCount = students.filter(s => s.marks !== '').length;
   const totalStudents = students.length;
   const progress = (gradedCount / totalStudents) * 100;
@@ -102,7 +292,7 @@ const VolunteerGradingComponent = () => {
           </div>
 
           {/* Form Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-3">
               <label className="flex items-center text-sm font-semibold" style={{ color: '#003c64' }}>
                 <FileText className="h-5 w-5 mr-2" style={{ color: '#f7ac2d' }} />
@@ -156,6 +346,34 @@ const VolunteerGradingComponent = () => {
                   e.target.style.boxShadow = 'none';
                   e.target.style.backgroundColor = '#f9fafb';
                 }}
+              />
+            </div>
+            <div className="space-y-3">
+              <label className="flex items-center text-sm font-semibold" style={{ color: '#003c64' }}>
+                <Users className="h-5 w-5 mr-2" style={{ color: '#f7ac2d' }} />
+                Center Location
+              </label>
+              <input
+                type="text"
+                value={centerLocation}
+                onChange={(e) => setCenterLocation(e.target.value)}
+                className="w-full px-4 py-4 border-2 rounded-xl transition-all duration-200 text-lg font-medium"
+                style={{ 
+                  borderColor: '#e5e7eb',
+                  color: '#003c64',
+                  backgroundColor: '#f9fafb'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#f7ac2d';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(247, 172, 45, 0.1)';
+                  e.target.style.backgroundColor = 'white';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                  e.target.style.backgroundColor = '#f9fafb';
+                }}
+                placeholder="Enter center location"
               />
             </div>
             <div className="space-y-3">
@@ -328,32 +546,99 @@ const VolunteerGradingComponent = () => {
                         <label 
                           className="cursor-pointer px-6 py-3 rounded-xl transition-all duration-200 flex items-center font-medium shadow-sm hover:shadow-md"
                           style={{ 
-                            backgroundColor: student.file ? 'rgba(16, 185, 129, 0.1)' : 'rgba(247, 172, 45, 0.1)',
-                            color: student.file ? '#10b981' : '#f7ac2d',
-                            border: `2px solid ${student.file ? 'rgba(16, 185, 129, 0.2)' : 'rgba(247, 172, 45, 0.2)'}`
+                            backgroundColor: student.file ? 
+                              ocrStatus[student.id] === 'success' ? 'rgba(16, 185, 129, 0.1)' :
+                              ocrStatus[student.id] === 'error' ? 'rgba(239, 68, 68, 0.1)' : 
+                              'rgba(247, 172, 45, 0.1)' : 
+                              'rgba(247, 172, 45, 0.1)',
+                            color: student.file ? 
+                              ocrStatus[student.id] === 'success' ? '#10b981' :
+                              ocrStatus[student.id] === 'error' ? '#ef4444' : 
+                              '#f7ac2d' : 
+                              '#f7ac2d',
+                            border: `2px solid ${student.file ? 
+                              ocrStatus[student.id] === 'success' ? 'rgba(16, 185, 129, 0.2)' :
+                              ocrStatus[student.id] === 'error' ? 'rgba(239, 68, 68, 0.2)' :
+                              'rgba(247, 172, 45, 0.2)' : 
+                              'rgba(247, 172, 45, 0.2)'}`
                           }}
                           onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = student.file ? 'rgba(16, 185, 129, 0.15)' : 'rgba(247, 172, 45, 0.15)';
+                            e.target.style.backgroundColor = student.file ? 
+                              ocrStatus[student.id] === 'success' ? 'rgba(16, 185, 129, 0.15)' :
+                              ocrStatus[student.id] === 'error' ? 'rgba(239, 68, 68, 0.15)' :
+                              'rgba(247, 172, 45, 0.15)' : 
+                              'rgba(247, 172, 45, 0.15)';
                             e.target.style.transform = 'translateY(-1px)';
                           }}
                           onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = student.file ? 'rgba(16, 185, 129, 0.1)' : 'rgba(247, 172, 45, 0.1)';
+                            e.target.style.backgroundColor = student.file ? 
+                              ocrStatus[student.id] === 'success' ? 'rgba(16, 185, 129, 0.1)' :
+                              ocrStatus[student.id] === 'error' ? 'rgba(239, 68, 68, 0.1)' :
+                              'rgba(247, 172, 45, 0.1)' : 
+                              'rgba(247, 172, 45, 0.1)';
                             e.target.style.transform = 'translateY(0)';
                           }}
                         >
-                          <Upload className="h-4 w-4 mr-2" />
-                          {student.file ? 'Change Image' : 'Upload Image'}
+                          {ocrStatus[student.id] === 'processing' ? (
+                            <div className="animate-pulse flex items-center">
+                              <Clock className="h-4 w-4 mr-2" />
+                              Processing...
+                            </div>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              {student.file ? 'Change Image' : 'Upload Image'}
+                            </>
+                          )}
                           <input
                             type="file"
                             accept="image/*"
                             onChange={(e) => handleFileUpload(student.id, e.target.files[0])}
                             className="hidden"
+                            disabled={ocrStatus[student.id] === 'processing'}
                           />
                         </label>
                         {student.file && (
-                          <p className="text-xs mt-2 px-2 py-1 rounded-md" style={{ color: '#6b7280', backgroundColor: '#f3f4f6' }}>
-                            {student.file.name}
-                          </p>
+                          <div className="mt-2 flex flex-col items-center">
+                            <p className="text-xs px-2 py-1 rounded-md" style={{ color: '#6b7280', backgroundColor: '#f3f4f6' }}>
+                              {student.file.name}
+                            </p>
+                            {student.ocrData && (
+                              <div className="mt-1 flex flex-col items-center">
+                                <button 
+                                  className="text-xs px-2 py-1 rounded-md flex items-center"
+                                  style={{ color: '#0056a8', backgroundColor: 'rgba(0, 86, 168, 0.1)' }}
+                                  onClick={() => {
+                                    const ocrInfo = student.ocrData;
+                                    const messageLines = [
+                                      `Student: ${ocrInfo.studentName || 'Not detected'}`,
+                                      `Subject: ${ocrInfo.subjectName || 'Not detected'}`,
+                                      `Date: ${ocrInfo.testDate || 'Not detected'}`,
+                                      `Marks: ${ocrInfo.marksReceived || '0'}/${ocrInfo.maxMarks || maxMarks}`,
+                                      `Confidence: ${Math.round(ocrInfo.confidence || 0)}%`
+                                    ];
+                                    alert(messageLines.join('\n'));
+                                  }}
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View OCR Data
+                                </button>
+                                
+                                {student.ocrData.imageUrl && (
+                                  <a 
+                                    href={`http://localhost:3000${student.ocrData.imageUrl}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-1 text-xs px-2 py-1 rounded-md flex items-center"
+                                    style={{ color: '#f7ac2d', backgroundColor: 'rgba(247, 172, 45, 0.1)' }}
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    View Image
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </td>
@@ -409,6 +694,20 @@ const VolunteerGradingComponent = () => {
           </button>
         </div>
       </div>
+
+      {/* Add OCR processing message notification */}
+      {ocrProcessingMessage && (
+        <div className="fixed top-8 right-8 max-w-md px-6 py-3 rounded-xl shadow-lg transition-all duration-500 animate-fadeIn z-50"
+          style={{ 
+            backgroundColor: ocrStatus[Object.keys(ocrStatus)[0]] === 'success' ? 'rgba(16, 185, 129, 0.95)' :
+              ocrStatus[Object.keys(ocrStatus)[0]] === 'error' ? 'rgba(239, 68, 68, 0.95)' : 
+              'rgba(247, 172, 45, 0.95)',
+            color: 'white'
+          }}
+        >
+          <p className="font-medium">{ocrProcessingMessage}</p>
+        </div>
+      )}
     </div>
   );
 };
