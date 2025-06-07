@@ -13,4 +13,4 @@ const classScheduleSchema = new mongoose.Schema({
   level: Number,
 });
 
-module.exports = mongoose.model('ClassSchedule', classScheduleSchema);
+export default mongoose.model('ClassSchedule', classScheduleSchema);

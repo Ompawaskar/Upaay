@@ -39,7 +39,11 @@ const studentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref : "ClassSchedule"
    }],
-   level: Number
+   level: {
+    type: Number,
+    required: true,
+    min: 1,
+   }
 }, {
   timestamps: true
 });

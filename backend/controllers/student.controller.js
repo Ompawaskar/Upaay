@@ -39,8 +39,12 @@ const handleMarkAttendance = async (req, res) => {
         if (!updatedStudent) {
             return res.status(404).json({message: "Student not found"});
         }
+        if (updatedStudent.attendance.includes(slotId)) {
+            return res.status(400).json({message: "Attendance already marked for this slot"});
+        }
         updatedStudent.attendance.push(slotId);
         await updatedStudent.save();
+        return res.status(200).json({message: "Attendance marked successfully", student: updatedStudent});
     } catch (error) {
         console.error("Error marking attendance:", error);
         return res.status(500).json({message: "Error marking attendance"});
@@ -49,4 +53,18 @@ const handleMarkAttendance = async (req, res) => {
 
 }
 
-module.exports = {handleGetStudentsOfScheduledClass, handleMarkAttendance};
+const handleCreateStudent = async (req, res) => {
+    const {name, age, location, level} = req.body;
+    if (!name || !age || !location || !level) {
+        return res.status(400).json({message: "All fields are required"});
+    }
+    try {
+        const newStudent = await Student.create({name, age, location, level});
+        return res.status(200).json(newStudent);
+    } catch (error) {
+        console.error("Error creating student:", error);
+        return res.status(500).json({message: "Error creating student"});
+    }
+}
+
+export {handleGetStudentsOfScheduledClass, handleMarkAttendance, handleCreateStudent};
