@@ -5,7 +5,7 @@ import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } 
 import Layout from './Layout.jsx'
 import Dashboard from './components/Dashboard/Dashboard.jsx'
 import { ClerkProvider, SignedIn } from '@clerk/clerk-react'
-import VolunteerGradingComponent from './components/Student/studentTest.jsx';
+import VolunteerGradingComponent from './components/Student/StudentTest.jsx';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
