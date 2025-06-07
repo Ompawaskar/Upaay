@@ -48,7 +48,7 @@ const Navbar = () => {
                                 Dashboard
                             </NavLink>
                             <NavLink
-                                to="/contact"
+                                to="/volunteer-sessions"
                                 className={({ isActive }) =>
                                     `px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive
                                         ? 'text-blue-600 bg-blue-50'
@@ -56,7 +56,7 @@ const Navbar = () => {
                                     }`
                                 }
                             >
-                                Contact
+                                Sessions
                             </NavLink>
                             <NavLink
                                 to="/about"
