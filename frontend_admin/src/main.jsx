@@ -4,6 +4,7 @@ import './index.css'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import Layout from './Layout.jsx'
 import { ClerkProvider, SignedIn } from '@clerk/clerk-react'
+import CertificateGenerator from '../../frontend/src/components/certificate/certificate.jsx'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -15,6 +16,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
       <Route index element={<div>Home Page</div>} />
+      <Route path='certificate' element={<CertificateGenerator />} />
     </Route>
   ))
 

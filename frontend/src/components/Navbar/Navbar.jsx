@@ -70,7 +70,7 @@ const Navbar = () => {
                                 Calendar
                             </NavLink>
                             <NavLink
-                                to="/register"
+                                to="/attendance-test"
                                 className={({ isActive }) =>
                                     `px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive
                                         ? 'text-blue-600 bg-blue-50'
@@ -78,7 +78,7 @@ const Navbar = () => {
                                     }`
                                 }
                             >
-                                Register
+                                Attendance
                             </NavLink>
                         </div>
                     </div>
