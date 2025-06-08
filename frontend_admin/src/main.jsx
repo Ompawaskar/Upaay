@@ -7,6 +7,7 @@ import { ClerkProvider, SignedIn } from '@clerk/clerk-react'
 import CertificateGenerator from '../../frontend/src/components/certificate/certificate.jsx'
 import Calendar from './components/ScheduleDisplay/scheduleIcon.jsx/Calendar.jsx'
 import AdminDashboard from './components/AdminDashboard/AdminDashboard.jsx'
+import ExcelUploadApp from './components/Excel/Excel.jsx'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -20,6 +21,7 @@ const router = createBrowserRouter(
       <Route index element={<AdminDashboard />} />
       <Route path='certificate' element={<CertificateGenerator />} />
       <Route path='sessions' element={<Calendar />} />
+      <Route path='excel' element={<ExcelUploadApp />} />
     </Route>
   ))
 

@@ -111,6 +111,116 @@ availabilitySchema.pre('save', function(next) {
   next();
 });
 
+app.get('/volunteers/available', async (req, res) => {
+  try {
+    const { date, timeSlot } = req.query;
+    // Validate required parameters
+    if (!date || !timeSlot) {
+      return res.status(400).json({
+        success: false,
+        message: 'Date and timeSlot are required parameters'
+      });
+    }
+
+    // Parse the date to ensure it's in the correct format
+    const targetDate = new Date(date);
+    
+    // Validate date
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date format'
+      });
+    }
+
+    // Find available volunteers for the specific date and time slot
+    const availableVolunteers = await Availability.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: new Date(targetDate.setHours(0, 0, 0, 0)),
+            $lt: new Date(targetDate.setHours(23, 59, 59, 999))
+          },
+          timeSlot: timeSlot,
+          isAvailable: true
+        }
+      },
+      {
+        $lookup: {
+          from: 'volunteers', // Collection name (usually pluralized)
+          localField: 'volunteerId',
+          foreignField: 'volunteerId',
+          as: 'volunteerDetails'
+        }
+      },
+      {
+        $unwind: '$volunteerDetails'
+      },
+      {
+        $project: {
+          _id: 1,
+          volunteerId: 1,
+          date: 1,
+          timeSlot: 1,
+          name: '$volunteerDetails.name',
+          email: '$volunteerDetails.email',
+          subjects: '$volunteerDetails.subjects'
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: availableVolunteers,
+      count: availableVolunteers.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching available volunteers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+const attendanceSchema = new mongoose.Schema({
+  date: Date,
+  studentsNames : [{
+    type: String,
+    required: true
+  }]
+});
+
+export default mongoose.model('attendanceModel', attendanceSchema)
+
+app.post('/add-attendance', async (req, res) => {
+  console.log(req.body)
+  const { date, studentsNames } = req.body;
+  try {
+    
+
+    // Validate input
+    if (!studentsNames) {
+      return res.status(400).json({ message: 'Students not found' });
+    }
+      
+    const adddedDetails = await Attendance.create({
+      date: date,
+      studentsNames: studentsNames,
+    });
+
+    return res.status(200).json({ message: 'Attendance added successfully' });
+
+   
+  } catch (error) {
+    console.error('Error marking attendance:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+  // return res.status(200).json({ message: 'Attendance added successfully' });
+})
+
 const Availability = mongoose.model('Availability', availabilitySchema);
 app.post('/api/availability', async (req, res) => {
   try {
@@ -159,6 +269,9 @@ app.post('/api/availability', async (req, res) => {
         runValidators: true
       }
     );
+
+    console.log("Result:",result);
+    
 
     res.status(200).json({
       success: true,

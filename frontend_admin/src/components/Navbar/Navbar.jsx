@@ -59,6 +59,17 @@ const Navbar = () => {
                             >
                                 Certificate
                             </NavLink>
+                            <NavLink
+                                to="/excel"
+                                className={({ isActive }) =>
+                                    `px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive
+                                        ? 'text-blue-600 bg-blue-50'
+                                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                                    }`
+                                }
+                            >
+                                Excel
+                            </NavLink>
                         </div>
                     </div>
 
