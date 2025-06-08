@@ -10,8 +10,7 @@ import CertificateGenerator from './components/certificate/certificate.jsx';
 import Volunteer from './components/VolunteerSessions/Volunteer.jsx'
 import VolunteerScheduler from './components/VolunteerFreeSlots/VolunteerScheduler.jsx'
 import Calendar from './components/ScheduleDisplay/scheduleIcon.jsx/Calendar.jsx'
-
-
+import HeroSection from './components/HeroSection.jsx'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
