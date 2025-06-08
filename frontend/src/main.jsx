@@ -12,6 +12,8 @@ import VolunteerScheduler from './components/VolunteerFreeSlots/VolunteerSchedul
 import Calendar from './components/ScheduleDisplay/scheduleIcon.jsx/Calendar.jsx'
 import HeroSection from './components/HeroSection.jsx'
 import OnBoardingForm from './components/Onboarding/OnBoardingForm.jsx'
+import AdminDashboard from './components/Dashboard/Dashboard.jsx'
+import ExcelUploadApp from '../../frontend_admin/src/components/Excel/Excel.jsx'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -42,6 +44,8 @@ const router = createBrowserRouter(
       <Route path="/certificate" element={<CertificateGenerator />} />
       <Route path='/schedule' element={<Calendar/>}/>
       <Route path="/onboard" element={<OnBoardingForm />} />
+      <Route path='dashboard' element={<AdminDashboard />} />
+      <Route path="students" element={<ExcelUploadApp />} />
     </Route>
   ))
 
