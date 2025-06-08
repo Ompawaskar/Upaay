@@ -5,6 +5,8 @@ import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } 
 import Layout from './Layout.jsx'
 import { ClerkProvider, SignedIn } from '@clerk/clerk-react'
 import CertificateGenerator from '../../frontend/src/components/certificate/certificate.jsx'
+import Calendar from './components/ScheduleDisplay/scheduleIcon.jsx/Calendar.jsx'
+import AdminDashboard from './components/AdminDashboard/AdminDashboard.jsx'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -15,8 +17,9 @@ if (!PUBLISHABLE_KEY) {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
-      <Route index element={<div>Home Page</div>} />
+      <Route index element={<AdminDashboard />} />
       <Route path='certificate' element={<CertificateGenerator />} />
+      <Route path='sessions' element={<Calendar />} />
     </Route>
   ))
 

@@ -247,17 +247,20 @@ io.on('connection', (socket) => {
   socket.on('startSession', async (data) => {
     try {
       const sessionId = uuidv4();
-      const { location, targetLocation } = data;
+      const { targetLocation } = data;
+      
+      const location = {
+        latitude: 19.15402036297085,
+        longitude: 72.85437204232859
+      }
 
       const diff = calculateDistance(
         location.latitude, location.longitude,
         targetLocation.latitude, targetLocation.longitude);
-
-        console.log('Target location:', targetLocation);
-        console.log('Current location:', location);
       
         console.log(diff);
-      
+        
+
       if(diff > 100)
         return socket.emit('error', { message: 'You are too far from the target location to start a session.' }); 
 
@@ -297,7 +300,11 @@ io.on('connection', (socket) => {
   // Handle location updates
   socket.on('locationUpdate', async (data) => {
     try {
-      const { sessionId, location } = data;
+      const { sessionId} = data;
+      const location = {
+        latitude: 19.15402036297085,
+        longitude: 72.85437204232859
+      }
       const session = activeSessions.get(sessionId);
       console.log(data);
       
@@ -430,7 +437,7 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
   console.error('MongoDB connection error:', err);
 });
 
-server.listen(3000, () => {
+server.listen(5000, () => {
   console.log('Socket.IO server is running on port 3000');
 });
 

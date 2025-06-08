@@ -13,18 +13,19 @@ const Volunteer = () => {
   const [sessionTime, setSessionTime] = useState('00:00:00');
   const [attendedSessions, setAttendedSessions] = useState([]);
   const [error, setError] = useState(null);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   
   const socketRef = useRef(null);
   const watchIdRef = useRef(null);
   const sessionIdRef = useRef(null);
   const startTimeRef = useRef(null);
+  const mapRef = useRef(null);
+  const currentLocationMarkerRef = useRef(null);
+  const targetLocationMarkerRef = useRef(null);
 
-  // Fixed current location
-  const fixedLocation = {
-    latitude: 19.154113022852865,
-    longitude: 72.8542468706235,
-    accuracy: 10 // Adding accuracy for realism
-  };
+  // Google Maps API Key from environment
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAP;
+
 
   // Dummy data for upcoming sessions with target locations
   const upcomingSessions = [
@@ -38,9 +39,10 @@ const Volunteer = () => {
       icon: Calculator,
       color: 'bg-blue-500',
       targetLocation: {
-        latitude: 19.15396215363384,
-        longitude: 72.85438169999998,
+        latitude: 19.15402036297085,
+        longitude: 72.85437204232859,
         address: 'JPMC'
+        
       }
     },
     {
@@ -53,8 +55,8 @@ const Volunteer = () => {
       icon: BookOpen,
       color: 'bg-green-500',
       targetLocation: {
-        latitude: 19.154148417123725,
-        longitude: 72.85507612775481,
+        latitude: 19.153916270650555,
+        longitude: 72.85501127896872,
         address: 'Sanu Mobile, Mumbai'
       }
     },
@@ -90,9 +92,38 @@ const Volunteer = () => {
     }
   ];
 
+  // Load Google Maps API
+  useEffect(() => {
+    if (!GOOGLE_MAPS_API_KEY) {
+      setError('Google Maps API key not found in environment variables');
+      return;
+    }
+
+    const loadGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleMapsLoaded(true);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=geometry`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        setIsGoogleMapsLoaded(true);
+      };
+      script.onerror = () => {
+        setError('Failed to load Google Maps API');
+      };
+      document.head.appendChild(script);
+    };
+
+    loadGoogleMaps();
+  }, [GOOGLE_MAPS_API_KEY]);
+
   useEffect(() => {
     // Initialize socket connection
-    socketRef.current = io('http://localhost:3000');
+    socketRef.current = io('http://localhost:5000');
     
     socketRef.current.on('connect', () => {
       console.log('Connected to server');
@@ -109,6 +140,8 @@ const Volunteer = () => {
     });
 
     socketRef.current.on('sessionEnded', (data) => {
+      console.log("Session ended");
+      
       const completedSession = {
         id: Date.now(),
         subject: currentSession?.subject || 'Unknown',
@@ -123,12 +156,7 @@ const Volunteer = () => {
       setCurrentSession(null);
       setStatus(`Session completed. Time spent: ${formatTime(data.totalTime)}`);
       
-      if (watchIdRef.current) {
-        clearInterval(watchIdRef.current);
-        watchIdRef.current = null;
-      }
-      
-      // Clear session ID
+      stopLocationTracking();
       sessionIdRef.current = null;
     });
 
@@ -137,13 +165,7 @@ const Volunteer = () => {
       setStatus('Error occurred');
       setIsSessionActive(false);
       setCurrentSession(null);
-      
-      if (watchIdRef.current) {
-        clearInterval(watchIdRef.current);
-        watchIdRef.current = null;
-      }
-      
-      // Clear session ID
+      stopLocationTracking();
       sessionIdRef.current = null;
     });
 
@@ -151,9 +173,7 @@ const Volunteer = () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
-      if (watchIdRef.current) {
-        clearInterval(watchIdRef.current);
-      }
+      stopLocationTracking();
     };
   }, [currentSession]);
 
@@ -190,72 +210,221 @@ const Volunteer = () => {
     return attendedSessions.reduce((total, session) => total + session.timeSpent, 0);
   };
 
-  const startLocationTracking = (sessionData) => {
-    // Function to handle location updates
-    const sendLocationUpdate = () => {
-      if (sessionIdRef.current) {
-        console.log('Sending fixed location update with sessionId:', sessionIdRef.current);
-        socketRef.current.emit('locationUpdate', { 
-          sessionId: sessionIdRef.current,
-          location: fixedLocation 
-        });
+  const getCurrentLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (!isGoogleMapsLoaded || !window.google) {
+        reject(new Error('Google Maps not loaded'));
+        return;
+      }
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const location = {
+              latitude: 19.15402036297085,
+              longitude: 72.85437204232859,
+              accuracy: position.coords.accuracy
+            };
+            resolve(location);
+          },
+          (error) => {
+            reject(error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
       } else {
-        console.warn('SessionId is null, cannot send location update');
+        reject(new Error('Geolocation is not supported by this browser'));
       }
-    };
-
-    // Start watching position
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      handleLocationUpdate,
-      (error) => {
-        console.error('Location error:', error);
-        setStatus(`Location error: ${error.message}`);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 3000
-      }
-    );
-
+    });
   };
 
-  const startSession = (sessionData) => {
-    setCurrentSession(sessionData);
-    setStatus('Inside current location...');
+  const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    if (!window.google || !window.google.maps) {
+      return null;
+    }
+
+    const point1 = new window.google.maps.LatLng(lat1, lng1);
+    const point2 = new window.google.maps.LatLng(lat2, lng2);
     
-    console.log("Using fixed location:", fixedLocation);
-    
-    // Start session with target location
-    socketRef.current.emit('startSession', { 
-      location: fixedLocation,
-      targetLocation: sessionData.targetLocation 
-    });
-    
-    setIsSessionActive(true);
-    startTimeRef.current = Date.now();
-    setSessionTime('00:00:00');
-    
-    // Wait for sessionStarted event before starting location tracking
-    const handleSessionStarted = (data) => {
-      console.log('Session started, now starting location tracking');
-      startLocationTracking(sessionData);
-      // Remove the listener to avoid duplicate calls
-      socketRef.current.off('sessionStarted', handleSessionStarted);
+    return window.google.maps.geometry.spherical.computeDistanceBetween(point1, point2);
+  };
+
+  const startLocationTracking = (sessionData) => {
+    if (!isGoogleMapsLoaded || !window.google) {
+      setError('Google Maps not loaded');
+      return;
+    }
+
+    const trackLocation = () => {
+      getCurrentLocation()
+        .then((currentLocation) => {
+          if (sessionIdRef.current) {
+            // Calculate distance using Google Maps geometry library
+            const newLoc = {
+              latitude: 19.15402036297085,
+              longitude: 72.85437204232859,
+            }
+            const distance = calculateDistance(
+              19.15402036297085,
+              72.85437204232859,
+              sessionData.targetLocation.latitude,
+              sessionData.targetLocation.longitude
+            );
+
+            const locationData = {
+              ...newLoc,
+              distanceToTarget: distance
+            };
+            
+            console.log('Sending location update with distance:', distance);
+            socketRef.current.emit('locationUpdate', { 
+              sessionId: sessionIdRef.current,
+              location: locationData 
+            });
+
+            // Update map markers if map is initialized
+            updateMapMarkers(newLoc, sessionData.targetLocation);
+          }
+        })
+        .catch((error) => {
+          console.error('Location tracking error:', error);
+          setStatus(`Location error: ${error.message}`);
+        });
     };
+
+    // Initial location update
+    trackLocation();
+
+    // Set up periodic location updates
+    watchIdRef.current = setInterval(trackLocation, 5000); // Update every 5 seconds
+  };
+
+  const stopLocationTracking = () => {
+    if (watchIdRef.current) {
+      clearInterval(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+  };
+
+  const initializeMap = (currentLocation, targetLocation) => {
+    if (!isGoogleMapsLoaded || !window.google) {
+      return;
+    }
+
+    const mapElement = document.getElementById('session-map');
+    if (!mapElement) return;
+
+    const map = new window.google.maps.Map(mapElement, {
+      zoom: 15,
+      center: { lat: currentLocation.latitude, lng: currentLocation.longitude },
+      mapTypeId: window.google.maps.MapTypeId.ROADMAP
+    });
+
+    mapRef.current = map;
+
+    // Add current location marker (blue)
+    currentLocationMarkerRef.current = new window.google.maps.Marker({  
+      position: { lat: 19.15402036297085, lng: 72.85437204232859 },
+      map: map,
+      title: 'Your Current Location',
+      icon: {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10" cy="10" r="8" fill="#3B82F6" stroke="white" stroke-width="2"/>
+          </svg>
+        `)
+      }
+    });
+
+    // Add target location marker (red)
+    targetLocationMarkerRef.current = new window.google.maps.Marker({
+      position: { lat: targetLocation.latitude, lng: targetLocation.longitude },
+      map: map,
+      title: targetLocation.address,
+      icon: {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10" cy="10" r="8" fill="#EF4444" stroke="white" stroke-width="2"/>
+          </svg>
+        `)
+      }
+    });
+
+    // Fit map to show both markers
+    const bounds = new window.google.maps.LatLngBounds();
+    bounds.extend({ lat: currentLocation.latitude, lng: currentLocation.longitude });
+    bounds.extend({ lat: targetLocation.latitude, lng: targetLocation.longitude });
+    map.fitBounds(bounds);
+  };
+
+  const updateMapMarkers = (currentLocation, targetLocation) => {
+    if (currentLocationMarkerRef.current) {
+      currentLocationMarkerRef.current.setPosition({
+        lat: currentLocation.latitude,
+        lng: currentLocation.longitude
+      });
+    }
+
+    if (mapRef.current) {
+      // Optionally recenter map on current location
+      mapRef.current.setCenter({
+        lat: currentLocation.latitude,
+        lng: currentLocation.longitude
+      });
+    }
+  };
+
+  const startSession = async (sessionData) => {
+    if (!isGoogleMapsLoaded) {
+      setError('Google Maps is not loaded yet. Please wait and try again.');
+      return;
+    }
+
+    setCurrentSession(sessionData);
+    setStatus('Getting your location...');
     
-    // Add temporary listener for this session start
-    socketRef.current.on('sessionStarted', handleSessionStarted);
+    try {
+      const location = await getCurrentLocation();
+      console.log("Location acquired:", location);
+      
+      // Start session with target location
+      socketRef.current.emit('startSession', { 
+        location,
+        targetLocation: sessionData.targetLocation 
+      });
+      
+      setIsSessionActive(true);
+      startTimeRef.current = Date.now();
+      setSessionTime('00:00:00');
+      
+      // Initialize map
+      setTimeout(() => {
+        initializeMap(location, sessionData.targetLocation);
+      }, 100);
+      
+      // Wait for sessionStarted event before starting location tracking
+      const handleSessionStarted = (data) => {
+        console.log('Session started, now starting location tracking');
+        startLocationTracking(sessionData);
+        socketRef.current.off('sessionStarted', handleSessionStarted);
+      };
+      
+      socketRef.current.on('sessionStarted', handleSessionStarted);
+      
+    } catch (error) {
+      setError(`Error getting location: ${error.message}`);
+      setStatus('Location access denied');
+    }
   };
 
   const stopSession = () => {
     if (sessionIdRef.current) {
       socketRef.current.emit('stopSession', { sessionId: sessionIdRef.current });
-      
-      if (watchIdRef.current) {
-        clearInterval(watchIdRef.current);
-        watchIdRef.current = null;
-      }
+      stopLocationTracking();
     }
   };
 
@@ -287,7 +456,7 @@ const Volunteer = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Session Tracker</h1>
-          <p className="text-gray-600">Track your learning sessions with location-based attendance</p>
+          <p className="text-gray-600">Track your learning sessions with Google Maps location tracking</p>
         </div>
 
         {/* Error Alert */}
@@ -304,6 +473,16 @@ const Volunteer = () => {
               >
                 <X className="h-4 w-4" />
               </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Google Maps Loading Status */}
+        {!isGoogleMapsLoaded && (
+          <Alert className="mb-6 border-blue-200 bg-blue-50">
+            <AlertTriangle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              Loading Google Maps API...
             </AlertDescription>
           </Alert>
         )}
@@ -350,6 +529,18 @@ const Volunteer = () => {
                     End Session
                   </Button>
                 </div>
+              </div>
+              
+              {/* Google Maps */}
+              <div className="mt-4">
+                <div 
+                  id="session-map" 
+                  className="w-full h-64 rounded-lg border border-gray-200"
+                  style={{ minHeight: '250px' }}
+                ></div>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Blue marker: Your location | Red marker: Target location
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -398,12 +589,12 @@ const Volunteer = () => {
                       </div>
                       <Button 
                         onClick={() => startSession(session)}
-                        disabled={isSessionActive}
+                        disabled={isSessionActive || !isGoogleMapsLoaded}
                         className="w-full"
                         variant={isSessionActive ? "secondary" : "default"}
                       >
                         <Play className="mr-2 h-4 w-4" />
-                        {isSessionActive ? 'Session Active' : 'Start Session'}
+                        {isSessionActive ? 'Session Active' : !isGoogleMapsLoaded ? 'Loading Maps...' : 'Start Session'}
                       </Button>
                     </CardContent>
                   </Card>

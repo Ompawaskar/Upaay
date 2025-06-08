@@ -3,14 +3,14 @@
 // Array of Indian city objects with their approximate latitude and longitude coordinates.
 // Coordinates are stored as strings to match your schema's definition.
 export const CITIES_COORDINATES = [
-    { city: 'Mumbai', latitude: '19.0760', longitude: '72.8777' },
-    { city: 'Delhi', latitude: '28.7041', longitude: '77.1025' },
-    { city: 'Bangalore', latitude: '12.9716', longitude: '77.5946' },
-    { city: 'Chennai', latitude: '13.0827', longitude: '80.2707' },
-    { city: 'Kolkata', latitude: '22.5726', longitude: '88.3639' },
-    { city: 'Hyderabad', latitude: '17.3850', longitude: '78.4867' },
-    { city: 'Ahmedabad', latitude: '23.0225', longitude: '72.5714' },
-    { city: 'Pune', latitude: '18.5204', longitude: '73.8567' },
+    { city: 'Karol Bagh', latitude: '19.0760', longitude: '72.8777' },
+    { city: 'Noida Sector 18', latitude: '28.7041', longitude: '77.1025' },
+    { city: 'Tilak Nagar', latitude: '12.9716', longitude: '77.5946' },
+    { city: 'Sikanderpur', latitude: '13.0827', longitude: '80.2707' },
+    { city: 'Sohna Road', latitude: '22.5726', longitude: '88.3639' },
+    { city: 'Scottish 57', latitude: '17.3850', longitude: '78.4867' },
+    { city: 'Gosavi Basti', latitude: '23.0225', longitude: '72.5714' },
+    { city: 'Dandekar Pul', latitude: '18.5204', longitude: '73.8567' },
 ];
 
 /**

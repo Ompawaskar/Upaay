@@ -6,7 +6,7 @@
 // and provides CITIES_COORDINATES and getLatLngFromCity.
 
 export const DUMMY_SCHEDULE_DATA = [
-    // Mumbai Schedules
+    // Karol Bagh Schedules
     {
         _id: 'sch_mumbai_1',
         date: '2025-06-09', // Monday
@@ -14,7 +14,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Math',
         volunteerName: 'Rohan Sharma',
         level: 3,
-        city: 'Mumbai',
+        city: 'Karol Bagh',
         // latitude and longitude removed as per instruction
     },
     {
@@ -24,7 +24,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'English',
         volunteerName: 'Priya Singh',
         level: 2,
-        city: 'Mumbai',
+        city: 'Karol Bagh',
     },
     {
         _id: 'sch_mumbai_3',
@@ -33,7 +33,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Science',
         volunteerName: 'Amit Patel',
         level: 4,
-        city: 'Mumbai',
+        city: 'Karol Bagh',
     },
     {
         _id: 'sch_mumbai_4',
@@ -42,7 +42,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Physics',
         volunteerName: 'Deepa Rao',
         level: 5,
-        city: 'Mumbai',
+        city: 'Karol Bagh',
     },
     {
         _id: 'sch_mumbai_5',
@@ -51,7 +51,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Chemistry',
         volunteerName: 'Vikram Mehta',
         level: 3,
-        city: 'Mumbai',
+        city: 'Karol Bagh',
     },
     {
         _id: 'sch_mumbai_6',
@@ -60,7 +60,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'History',
         volunteerName: 'Sneha Gupta',
         level: 2,
-        city: 'Mumbai',
+        city: 'Karol Bagh',
     },
     {
         _id: 'sch_mumbai_7',
@@ -69,7 +69,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Economics',
         volunteerName: 'Kiran Reddy',
         level: 4,
-        city: 'Mumbai',
+        city: 'Karol Bagh',
     },
     {
         _id: 'sch_mumbai_8',
@@ -78,10 +78,10 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Biology',
         volunteerName: 'Rahul Verma',
         level: 3,
-        city: 'Mumbai',
+        city: 'Karol Bagh',
     },
 
-    // Delhi Schedules
+    // Tilak Nagar Schedules
     {
         _id: 'sch_delhi_1',
         date: '2025-06-09', // Monday
@@ -89,7 +89,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'English',
         volunteerName: 'Anjali Desai',
         level: 2,
-        city: 'Delhi',
+        city: 'Tilak Nagar',
     },
     {
         _id: 'sch_delhi_2',
@@ -98,7 +98,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Geography',
         volunteerName: 'Suresh Kumar',
         level: 1,
-        city: 'Delhi',
+        city: 'Tilak Nagar',
     },
     {
         _id: 'sch_delhi_3',
@@ -107,7 +107,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Computer Science',
         volunteerName: 'Geeta Sharma',
         level: 4,
-        city: 'Delhi',
+        city: 'Tilak Nagar',
     },
     {
         _id: 'sch_delhi_4',
@@ -116,7 +116,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Math',
         volunteerName: 'Ajay Dixit',
         level: 3,
-        city: 'Delhi',
+        city: 'Tilak Nagar',
     },
     {
         _id: 'sch_delhi_5',
@@ -125,7 +125,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Hindi',
         volunteerName: 'Nisha Singhania',
         level: 1,
-        city: 'Delhi',
+        city: 'Tilak Nagar',
     },
     {
         _id: 'sch_delhi_6',
@@ -134,7 +134,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'English Literature',
         volunteerName: 'Rajesh Khanna',
         level: 5,
-        city: 'Delhi',
+        city: 'Tilak Nagar',
     },
     {
         _id: 'sch_delhi_7',
@@ -143,7 +143,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Political Science',
         volunteerName: 'Smita Nagar',
         level: 3,
-        city: 'Delhi',
+        city: 'Tilak Nagar',
     },
     {
         _id: 'sch_delhi_8',
@@ -152,7 +152,7 @@ export const DUMMY_SCHEDULE_DATA = [
         subject: 'Physical Education',
         volunteerName: 'Manoj Yadav',
         level: 2,
-        city: 'Delhi',
+        city: 'Tilak Nagar',
     },
 ];
 
