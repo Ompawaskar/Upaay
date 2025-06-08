@@ -11,6 +11,7 @@ import Volunteer from './components/VolunteerSessions/Volunteer.jsx'
 import VolunteerScheduler from './components/VolunteerFreeSlots/VolunteerScheduler.jsx'
 import Calendar from './components/ScheduleDisplay/scheduleIcon.jsx/Calendar.jsx'
 import HeroSection from './components/HeroSection.jsx'
+import OnBoardingForm from './components/Onboarding/OnBoardingForm.jsx'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -38,8 +39,9 @@ const router = createBrowserRouter(
       <Route path="volunteer-scheduler" element={<VolunteerScheduler />} />
       <Route path='/test' element={<VolunteerGradingComponent />} />
       <Route path='/attendance-test' element={<AttendanceTest />} />
-       <Route path="/certificate" element={<CertificateGenerator />} />
+      <Route path="/certificate" element={<CertificateGenerator />} />
       <Route path='/schedule' element={<Calendar/>}/>
+      <Route path="/onboard" element={<OnBoardingForm />} />
     </Route>
   ))
 

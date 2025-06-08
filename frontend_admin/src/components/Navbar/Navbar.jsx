@@ -18,7 +18,7 @@ const Navbar = () => {
                     {/* Logo */}
                     <div className="flex-shrink-0 flex items-center">
                         <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            YourBrand
+                            FootPathShala
                         </Link>
                     </div>
 
@@ -34,8 +34,20 @@ const Navbar = () => {
                                     }`
                                 }
                             >
-                                Home
+                                Dashboard
                             </NavLink>
+                            <NavLink
+                                to="/sessions"
+                                className={({ isActive }) =>
+                                    `px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive
+                                        ? 'text-blue-600 bg-blue-50'
+                                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                                    }`
+                                }
+                            >
+                                Sessions
+                            </NavLink>
+                        
                             <NavLink
                                 to="/certificate"
                                 className={({ isActive }) =>
@@ -46,17 +58,6 @@ const Navbar = () => {
                                 }
                             >
                                 Certificate
-                            </NavLink>
-                            <NavLink
-                                to="/volunteer-sessions"
-                                className={({ isActive }) =>
-                                    `px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive
-                                        ? 'text-blue-600 bg-blue-50'
-                                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                                    }`
-                                }
-                            >
-                                Sessions
                             </NavLink>
                         </div>
                     </div>
@@ -111,7 +112,7 @@ const Navbar = () => {
                         Dashboard
                     </NavLink>
                     <NavLink
-                        to="/certificate"
+                        to="/contact"
                         className={({ isActive }) =>
                             `block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${isActive
                                 ? 'text-blue-600 bg-blue-50'
@@ -120,7 +121,7 @@ const Navbar = () => {
                         }
                         onClick={() => setIsMenuOpen(false)}
                     >
-                        Certificate
+                        Contact
                     </NavLink>
                     <NavLink
                         to="/about"

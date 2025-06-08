@@ -37,17 +37,6 @@ const Navbar = () => {
                                 Home
                             </NavLink>
                             <NavLink
-                                to="/dashboard"
-                                className={({ isActive }) =>
-                                    `px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive
-                                        ? 'text-blue-600 bg-blue-50'
-                                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                                    }`
-                                }
-                            >
-                                Dashboard
-                            </NavLink>
-                            <NavLink
                                 to="/volunteer-sessions"
                                 className={({ isActive }) =>
                                     `px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive
