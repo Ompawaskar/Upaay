@@ -1,5 +1,5 @@
 # 📚 Footpathshala – Turning Footpaths into Schools
----
+
 ## 🔑 Key Features
 
 - 📸 **Facial Recognition Attendance**  
@@ -29,7 +29,6 @@
 - 👥 **Onboarding System**  
   Streamlined enrollment for both students and volunteers.
 
----
 
 ## 🛠️ Tech Stack
 
@@ -52,7 +51,6 @@
 - Postman (API testing)  
 - Figma (UI design)
 
----
 
 ## 👨‍💻 Team
 
@@ -64,6 +62,5 @@
 - Smit Patel
 - Arpan Saha
 
----
 
 
