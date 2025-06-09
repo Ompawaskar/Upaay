@@ -1,4 +1,4 @@
-# 📚 Footpathshala – Empowering Education from the Streets
+# 📚 Footpathshala – Turning Footpaths into Schools
 ---
 ## 🔑 Key Features
 
